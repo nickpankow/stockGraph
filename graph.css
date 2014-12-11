@@ -8,13 +8,20 @@
 }
 
 .line{
-	stroke: steelblue;
 	stoke-width: 2;
 	fill: none;
 }
 
 .line:hover{
 	stroke:brown;
+}
+
+.close {
+	stroke: green;
+}
+
+.movingAvg {
+	stroke: red;
 }
 
 .axis {

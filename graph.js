@@ -25,10 +25,10 @@ var chart = d3.select(".chart")
   .append("g")
     	.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-var dateMin = new Date("2012-01-01")
-   ,dateMax = new Date("2012-12-31");
+var dateMin = new Date("2013-01-01")
+   ,dateMax = new Date("2013-12-31");
 
-d3.csv("data.csv", type, function(error, data) {
+d3.csv("table_2013_avg.csv", type, function(error, data) {
 	// x.domain(data.map(function(d) { return d.date; }));
 	// x.domain([data[0].date,data[data.length - 1].date])
 	x.domain([dateMin,dateMax])
@@ -55,12 +55,48 @@ d3.csv("data.csv", type, function(error, data) {
 		.style("text-anchor", "end")
 		.text("Close");
 
-	chart.selectAll(".bar")
+	chart.selectAll(".close")
 		.data(data)
 	  .enter().append('svg:path')
 	  .attr('d', lineFunc(data))
-	  .attr("class", "line");
+	  .attr("class", "line close");
+
+	chart.selectAll(".movingAvg")
+		.data(data)
+	  .enter().append('svg:path')
+	  .attr('d', lineAvgFunc(data))
+	  .attr("class", "line movingAvg")
 });
+
+var legendRectSize = 18;
+var legendSpacing = 4;
+var legendScale = d3.scale.ordinal()
+	.domain(["Close","MovingAvg"])
+	.range(["green", "red"]);
+
+var legend = chart.selectAll(".svg")
+	.data(legendScale.domain())
+	.enter()
+		.append('g')
+		.attr("class", "legend")
+		.attr("transform", function(d, i) {
+			var legendHeight = legendRectSize + legendSpacing;
+			var offset = legendHeight * legendScale.domain().length / 2;
+			var horz = width - 100;
+			var vert = i * legendHeight - offset;
+			return "translate(" + horz + "," + vert + ")";
+});
+
+legend.append('rect')
+	.attr("width", legendRectSize)
+	.attr("height", legendRectSize)
+	.attr("fill", legendScale)
+	.attr("stroke", legendScale);
+
+legend.append("text")
+	.attr("x", legendRectSize + legendSpacing)
+	.attr("y", legendRectSize - legendSpacing)
+	.text(function(d) { return d; });
 
 var lineFunc = d3.svg.line()
 	.x(function(d) {
@@ -71,8 +107,18 @@ var lineFunc = d3.svg.line()
 	})
 	.interpolate('linear');
 
+var lineAvgFunc = d3.svg.line()
+	.x(function(d) {
+		return x(d.date);
+	})
+	.y(function(d) {
+		return y(d.movingAvg);
+	})
+	.interpolate('linear');
+
 function type(d){
 	d.date = new Date(d.date.replace("/","-")); // Coerce to date
 	d.close = +d.close; //coerce to number
+	d.movingAvg = +d.movingAvg; // coerce to number
 	return d;
 }
