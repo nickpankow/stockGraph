@@ -33,6 +33,13 @@ var csvData = null;
 d3.csv("table_2013_avg.csv", type, function(error, data) {
 	// x.domain(data.map(function(d) { return d.date; }));
 	// x.domain([data[0].date,data[data.length - 1].date])
+
+	if (error || data == null){
+		console.log("Error loadng data!");
+		d3.select("error").html("Error loading data: " + error);
+		return;
+	}
+
 	x.domain([dateMin,dateMax])
 	var yMax = d3.max(data, function(d) { return d.close; });
 	y.domain([0, yMax + (yMax / 3)]);
@@ -121,7 +128,7 @@ var lineAvgFunc = d3.svg.line()
 	.interpolate('linear');
 
 function type(d){
-	d.date = new Date(d.date.replace("/","-")); // Coerce to date
+	d.date = new Date(d.date.replace(/\//g, "-")); // Coerce to date
 	d.close = +d.close; //coerce to number
 	d.movingAvg = +d.movingAvg; // coerce to number
 	return d;
@@ -150,6 +157,10 @@ chart.append("rect")
 var bisectDate = d3.bisector(function(d) { return d.date; }).left;
 
 function mousemove() {
+	if (csvData == undefined || csvData.length == 0) {
+		console.log("Data error!");
+		return;
+	}
 	var x0 = x.invert(d3.mouse(this)[0]),
 		i = bisectDate(csvData, x0, 1),
 		d0 = csvData[i - 1],
